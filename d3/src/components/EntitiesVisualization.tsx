@@ -82,6 +82,9 @@ const D3EntityGraph: React.FC<D3EntityGraphProps> = ({
       weight: link.weight || Math.floor(Math.random() * 100) + 1
     }));
     
+    console.log("Processed nodes:", JSON.stringify(nodes));
+    console.log("Processed links:", JSON.stringify(links));
+    
     setCurrentNodes(nodes);
     setCurrentLinks(links);
   }, [nodesData, linksData]);
@@ -149,7 +152,7 @@ const D3EntityGraph: React.FC<D3EntityGraphProps> = ({
 
     // Set up the force simulation
     const simulation = d3.forceSimulation(currentNodes)
-      .force("link", d3.forceLink(processedLinks)
+      .force("link", d3.forceLink(currentLinks)
         .id((d: any) => d.id)
         .distance(100))
       .force("charge", d3.forceManyBody().strength(-300))
@@ -160,7 +163,7 @@ const D3EntityGraph: React.FC<D3EntityGraphProps> = ({
     const linkGroup = g.append("g")
       .attr("class", "links-layer")
       .selectAll("g.link-unit")
-      .data(processedLinks)
+      .data(currentLinks, (d:any) => `${d.source}-${d.target}-${d.value}`)
       .join("g")
       .attr("class", "link-unit");
 
@@ -294,7 +297,7 @@ const D3EntityGraph: React.FC<D3EntityGraphProps> = ({
 
     // Update positions on each simulation tick
     simulation.on("tick", () => {
-      links
+        links
         .attr("x1", d => (d.source as any).x)
         .attr("y1", d => (d.source as any).y)
         .attr("x2", d => (d.target as any).x)
@@ -321,7 +324,7 @@ const D3EntityGraph: React.FC<D3EntityGraphProps> = ({
       const filteredNodes = currentNodes.filter(n => n.id !== d_clicked_node.id);
       
       // Filter out links connected to the node
-      const filteredLinks = processedLinks.filter(l => 
+      const filteredLinks = currentLinks.filter(l => 
         l.source.id !== d_clicked_node.id && l.target.id !== d_clicked_node.id
       );
       
@@ -334,7 +337,7 @@ const D3EntityGraph: React.FC<D3EntityGraphProps> = ({
       event.stopPropagation();
       
       // Filter out the double-clicked link
-      const filteredLinks = processedLinks.filter(l => l !== d_clicked_link);
+      const filteredLinks = currentLinks.filter(l => l !== d_clicked_link);
       
       // Update state with the filtered links
       setCurrentLinks(filteredLinks);
